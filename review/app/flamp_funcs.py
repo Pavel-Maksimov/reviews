@@ -5,6 +5,10 @@ from .settings import TIMEZONE
 
 
 def extract_reviews(root):
+    """
+    Parse lxml etree of flamp.ru web page.
+    Return list of tuples (date, name, score, text).
+    """
     result = []
     for el in root.find_class('ugc-list__item js-ugc-list-item'):
         for e in el.find_class('ugc-item'):
@@ -32,6 +36,10 @@ def extract_reviews(root):
 
 
 def get_next_pages(root):
+    """
+    Parse lxml etree of flamp.ru web page.
+    Return next pages with organisations.
+    """
     result = []
     for i in root.find_class('list pagination__list pagination__list--pages'):
         for n in i.iter('a'):
@@ -40,6 +48,10 @@ def get_next_pages(root):
 
 
 def get_places(strg):
+    """
+    Parse web page of flamp.ru.
+    Return list of links of organisation details pages. 
+    """
     res = requests.get(strg)
     root = html.fromstring(res.content.decode())
     result = []
@@ -51,6 +63,10 @@ def get_places(strg):
 
 
 def scrape_flamp(url, last_visit_time=None):
+    """
+    Search reviews about all points of organisations.
+    Return list of dictionaries representing reviews info.
+    """
     last_visit = last_visit_time or datetime.datetime(
         2000,
         1,
@@ -71,5 +87,13 @@ def scrape_flamp(url, last_visit_time=None):
         place_root = html.fromstring(place_res.content.decode())
         for name, date, score, text in extract_reviews(place_root):
             if date > last_visit:
-                extracted_data.append((url, name, date, score, text))
+                extracted_data.append(
+                    {
+                        'url': url,
+                        'name': name,
+                        'date': date,
+                        'score': score,
+                        'text': text
+                    }
+                )
     return extracted_data

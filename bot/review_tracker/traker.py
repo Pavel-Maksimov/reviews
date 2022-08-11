@@ -1,34 +1,40 @@
 import datetime
 from sqlalchemy import create_engine, text
-from sqlalchemy.engine.url import URL
+from sqlalchemy.engine import URL
 
-from .settings import DATABASE, TIMEZONE
+from .settings import DATABASE
 
 
 def read_reviews():
-    engine = create_engine('postgresql+psycopg2://postgres:12345@db:5432/scraping')
+    """
+    Check new records in database.
+    Return dictionary representing fields of reviews.
+    
+    """
+    url = URL.create(**DATABASE)
+    engine = create_engine(url)
     conn = engine.connect()
-
+    # получить дату последнего уже просмотренного отзыва
     with open('review_tracker/last_visit.txt', 'r') as f:
         last_visit_str = f.read()
-    last_visit = datetime.datetime.strptime(last_visit_str, '%Y-%m-%d %H:%M:%S.%f%z')
+    last_visit = datetime.datetime.strptime(last_visit_str, '%Y-%m-%d %H:%M:%S%z')
     t = text('SELECT * FROM review WHERE date>:last_visit')
     result = conn.execute(t, last_visit=last_visit)
     reviews = []
-    for el in result.fetchall():
+    data = result.fetchall()
+    for el in data:
         reviews.append(
             {
-                'link': el[1],
-                'name': el[2],
-                'date': str(el[3]),
-                'score': el[4],
-                'text': el[5]
+                'ссылка': el[1],
+                'имя пользователя': el[2],
+                'дата': str(el[3]),
+                'оценка': el[4],
+                'текст': el[5]
             }
         )
-
-    last_visit = datetime.datetime.now(
-        tz=datetime.timezone(datetime.timedelta(hours=TIMEZONE))
-    )
-    with open('review_tracker/last_visit.txt', 'w') as f:
-        f.write(str(last_visit))
+    # сохранить дату последнего просмотренного отзыва, если имеется 
+    if len(data) > 0:
+        last_review = max(data, key=lambda x: x[3])
+        with open('review_tracker/last_visit.txt', 'w') as f:
+            f.write(str(last_review[3]))
     return reviews

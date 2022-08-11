@@ -1,7 +1,7 @@
 import os
 
 TIMEZONE = 5
-BOT_TOKEN = '1769438523:AAFi6CpHk-Ys6Hc5kfABRHozlKRX1x28Jsc'
+BOT_TOKEN = os.environ.get('BOT_TOKEN')
 DATABASE = {
     'drivername': 'postgresql+psycopg2',
     'host': os.environ.get('DB_HOST'),

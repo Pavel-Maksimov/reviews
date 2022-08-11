@@ -20,7 +20,7 @@ services:
     build: ./bot/
     restart: "no"
     depends_on:
-      - db
+      - review
     env_file:
       - ./bot/review_tracker/.env
 
